@@ -16,41 +16,23 @@ import { httpProxy, httpClient } from '@/utils/httpClient'
 import bodyparser from 'koa-bodyparser'
 import FlowEnc from '@/utils/flowEnc'
 import levelDB from '@/utils/levelDB'
-import { webdavServer, alistServer, port, version } from '@/config'
+import { webdavServer, port } from '@/config'
 import { pathExec, pathFindPasswd } from '@/utils/commonUtil'
 import globalHandle from '@/middleware/globalHandle'
-import encApiRouter from '@/router'
 import encNameRouter from '@/encNameRouter'
 import encDavHandle from '@/encDavHandle'
 
 import { cacheFileInfo, getFileInfo } from '@/dao/fileDao'
 import { getWebdavFileInfo } from '@/utils/webdavClient'
-import staticServer from 'koa-static'
 import { logger } from '@/common/logger'
 import { encodeName } from '@/utils/commonUtil'
 
-async function sleep(time) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve()
-    }, time || 3000)
-  })
-}
-
 const proxyRouter = new Router()
 const app = new Koa()
-// compatible ncc and pkg
-const pkgDirPath = path.dirname(process.argv[1])
 
-app.use(staticServer(pkgDirPath, 'public'))
 app.use(globalHandle)
 // bodyparser解析body
 const bodyparserMw = bodyparser({ enableTypes: ['json', 'form', 'text'] })
-
-// ======================/proxy是实现本服务的业务==============================
-// 短地址
-encApiRouter.redirect('/index', '/public/index.html', 302)
-app.use(encApiRouter.routes()).use(encApiRouter.allowedMethods())
 
 // ======================下面是实现webdav代理的业务==============================
 
@@ -219,14 +201,6 @@ webdavServer.forEach((webdavConfig) => {
     proxyRouter.all(new RegExp(webdavConfig.path), preProxy(webdavConfig, true), encDavHandle, proxyHandle)
   }
 })
-
-/* =================================== 单独处理alist的逻辑 ====================================== */
-
-// 单独处理alist的所有/dav
-proxyRouter.all(/^\/dav\/*/, preProxy(alistServer, true), encDavHandle, proxyHandle)
-
-// 其他的代理request预处理，处理要跳转的路径等
-proxyRouter.all(/\/*/, preProxy(alistServer, false))
 // check enc filename
 proxyRouter.use(encNameRouter.routes()).use(encNameRouter.allowedMethods())
 
@@ -244,7 +218,7 @@ proxyRouter.all('/api/fs/get', bodyparserMw, async (ctx, next) => {
   const respBody = await httpClient(ctx.req)
   const result = JSON.parse(respBody)
   const { headers } = ctx.req
-  const { passwdInfo } = pathFindPasswd(alistServer.passwdList, path)
+  const { passwdInfo } = pathFindPasswd(webdavServer.passwdList, path)
 
   if (passwdInfo) {
     // 修改返回的响应，匹配到要解密，就302跳转到本服务上进行代理流量
@@ -256,38 +230,6 @@ proxyRouter.all('/api/fs/get', bodyparserMw, async (ctx, next) => {
     }/redirect/${key}?decode=1&lastUrl=${encodeURIComponent(path)}`
     if (result.data.provider === 'AliyundriveOpen') result.data.provider = 'Local'
   }
-  ctx.body = result
-})
-
-// 缓存alist的文件信息
-proxyRouter.all('/api/fs/list', bodyparserMw, async (ctx, next) => {
-  const { path } = ctx.request.body
-  // 判断打开的文件是否要解密，要解密则替换url，否则透传
-  ctx.req.reqBody = JSON.stringify(ctx.request.body)
-  const respBody = await httpClient(ctx.req)
-  // logger.info('@@@respBody', respBody)
-  const result = JSON.parse(respBody)
-  if (!result.data) {
-    ctx.body = result
-    return
-  }
-  const content = result.data.content
-  if (!content) {
-    ctx.body = result
-    return
-  }
-  for (let i = 0; i < content.length; i++) {
-    const fileInfo = content[i]
-    fileInfo.path = path + '/' + fileInfo.name
-    // 这里要注意闭包问题，mad
-    // logger.debug('@@cacheFileInfo', fileInfo.path)
-    cacheFileInfo(fileInfo)
-  }
-  // waiting cacheFileInfo a moment
-  if (content.length > 100) {
-    await sleep(50)
-  }
-  logger.info('@@@fs/list', content.length)
   ctx.body = result
 })
 
@@ -307,35 +249,10 @@ proxyRouter.put('/api/fs/put-back', async (ctx, next) => {
   return await httpProxy(ctx.req, ctx.res)
 })
 
-// 修复alist 图标不显示的问题
-proxyRouter.all(/^\/images\/*/, async (ctx, next) => {
-  delete ctx.req.headers.host
-  return await httpProxy(ctx.req, ctx.res)
-})
-
-// 初始化alist的路由
-proxyRouter.all(new RegExp(alistServer.path), async (ctx, next) => {
-  let respBody = await httpClient(ctx.req, ctx.res)
-  respBody = respBody.replace(
-    '<body>',
-    `<body>
-    <div style="position: fixed;z-index:10010; top:7px; margin-left: 50%">
-      <a target="_blank" href="/index">
-        <div style="width:40px;height:40px;margin-left: -20px">
-          <img style="width:40px;height:40px;" src="/public/logo.png" />
-          <div style="margin: -7px 2px;">
-            <span style="color:gray;font-size:11px">V.${version}</span>
-          </div>
-        </div>
-      </a>
-    </div>`
-  )
-  ctx.body = respBody
-})
 // 使用路由控制
 app.use(proxyRouter.routes()).use(proxyRouter.allowedMethods())
 
-// 配置创建好了，就启动 else {
+// 配置创建好了，就启动
 const server = http.createServer(app.callback())
 server.maxConnections = 1000
 server.listen(port, () => logger.info('服务启动成功: ' + port))
