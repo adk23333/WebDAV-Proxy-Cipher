@@ -1,6 +1,6 @@
 import log4js from 'log4js'
 import dotenv from 'dotenv'
-dotenv.config('./env')
+dotenv.config({ path: './env' })
 
 log4js.configure({
   appenders: {

@@ -45,3 +45,5 @@ Thumbs.db
 # agent build ignore
 /agent/
 
+pnpm-lock.yaml
+
