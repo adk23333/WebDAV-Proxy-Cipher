@@ -34,17 +34,7 @@ export default () => {
         '@': path.resolve('./src'),
       },
     },
-    plugins: [
-      new CopyPlugin({
-        patterns: [
-          {
-            from: path.resolve('./public'),
-            to: path.join(output.path, 'public'),
-          },
-        ],
-      }),
-      new PkgConfig(),
-    ],
+    plugins: [new PkgConfig()],
     target: 'node',
     mode: 'production',
     optimization: {
