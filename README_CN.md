@@ -91,7 +91,7 @@ services:
     hostname: webdav-encrypt
     container_name: webdav-encrypt
     volumes:
-      - ./src/node-proxy/conf:/node-proxy/conf   # 挂载配置文件目录
+      - ./conf:/node-proxy/conf                  # 挂载配置文件目录
     environment:
       TZ: Asia/Shanghai
       WEBDAV_HOST: 192.168.31.254:5254           # 设置上游 WebDAV 地址

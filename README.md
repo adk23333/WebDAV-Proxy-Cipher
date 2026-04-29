@@ -88,7 +88,7 @@ services:
     hostname: webdav-encrypt
     container_name: webdav-encrypt
     volumes:
-      - ./src/node-proxy/conf:/node-proxy/conf   # Mount configuration directory
+      - ./conf:/node-proxy/conf                  # Mount configuration directory
     environment:
       TZ: Asia/Shanghai
       WEBDAV_HOST: 192.168.31.254:5254           # Upstream WebDAV address
