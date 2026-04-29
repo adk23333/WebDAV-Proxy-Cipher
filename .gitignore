@@ -38,7 +38,7 @@ logs/
 *.patch
 *.tmp
 
-# system ignore 额
+# system ignore
 .DS_Store
 Thumbs.db
 
@@ -47,3 +47,5 @@ Thumbs.db
 
 pnpm-lock.yaml
 
+# obsidian ignore
+.obsidian/
