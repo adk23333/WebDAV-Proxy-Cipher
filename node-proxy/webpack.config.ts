@@ -1,5 +1,4 @@
 import fs from 'fs'
-import CopyPlugin from 'copy-webpack-plugin'
 import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 import webpack from 'webpack'
