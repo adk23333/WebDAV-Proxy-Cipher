@@ -1,9 +1,12 @@
 export {}
 declare global {
   interface PasswdInfo {
-    encPath: string
-    enable: string
     password: string
     encType: string
+    describe: string
+    enable: boolean
+    encName: boolean
+    encNameSuffix: string
+    encPath: string[]
   }
 }

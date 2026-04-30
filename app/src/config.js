@@ -1,6 +1,4 @@
 import fs from 'fs'
-import { addUserInfo, getUserInfo } from './dao/userDao'
-import nedb from './utils/levelDB'
 
 // inti config, fix ncc get local conf
 function getConfPath() {
@@ -62,20 +60,6 @@ if (!exist) {
 const configJson = fs.readFileSync(getConfFilePath(), 'utf8')
 const configData = JSON.parse(configJson)
 
-/** 初始化用户的数据库 */
-async function init() {
-  try {
-    await nedb.load()
-    let admin = await getUserInfo('admin')
-    // 初始化admin账号
-    if (admin == null) {
-      admin = { username: 'admin', password: '123456', roleId: '[13]' }
-      await addUserInfo(admin)
-    }
-    console.log('@@init', admin)
-  } catch (e) {}
-}
-init()
 
 /** 代理服务的端口 */
 export const port = configData.port || 5344
