@@ -1,4 +1,4 @@
-name: CI/CD â Node.js Application with Docker
+name: CI/CD Node.js Application with Docker
 
 on:
   release:
@@ -8,6 +8,7 @@ on:
       tag:
         description: 'Docker image tag (e.g. v1.2.3)'
         required: false
+        type: string
         default: 'preview-${{ github.sha }}'
 
 jobs:
