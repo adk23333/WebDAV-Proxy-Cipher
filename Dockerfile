@@ -13,10 +13,10 @@ RUN apk add --no-cache tzdata \
     && echo $TZ > /etc/timezone
 
 # 只从构建阶段复制必要的产物，不带入源码和冗余依赖
-COPY ./dist ./src
-COPY ./node_modules ./node_modules
-COPY ./package.json ./
+COPY ./app/dist ./dist
+COPY ./app/node_modules ./node_modules
+COPY ./app/package.json ./
 
 EXPOSE 5344
 
-ENTRYPOINT ["node", "src/index.js"]
+ENTRYPOINT ["node", "dist/index.js"]
