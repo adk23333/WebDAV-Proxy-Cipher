@@ -1,5 +1,5 @@
 # 设置工作目录
-WORKDIR /node-proxy
+WORKDIR /app
 
 FROM node:22-alpine
 
