@@ -4,7 +4,6 @@ FROM node:20-alpine
 WORKDIR /app
 
 # 设置环境变量
-ENV NODE_ENV=production
 ENV TZ=Asia/Shanghai
 
 # 设置时区（Alpine 需要安装 tzdata 包）
