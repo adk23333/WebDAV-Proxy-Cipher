@@ -9,7 +9,7 @@ on:
         description: 'Docker image tag (e.g. v1.2.3)'
         required: false
         type: string
-        default: 'preview-${{ github.sha }}'
+        default: 'preview-manual'
 
 jobs:
   build-and-push:
