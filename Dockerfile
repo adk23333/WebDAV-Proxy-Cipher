@@ -1,7 +1,7 @@
+FROM node:22-alpine
+
 # 设置工作目录
 WORKDIR /app
-
-FROM node:22-alpine
 
 # 设置环境变量
 ENV NODE_ENV=production
